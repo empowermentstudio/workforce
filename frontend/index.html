@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Volunteer Hub — Grace Community Church</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:#f4f5f7;color:#111;min-height:100vh}
+.app{display:flex;min-height:100vh}
+.sidebar{width:200px;background:#fff;border-right:1px solid #e8e8e8;display:flex;flex-direction:column;padding:16px 0;position:fixed;top:0;left:0;height:100vh}
+.logo{padding:0 16px 16px;border-bottom:1px solid #eee;margin-bottom:10px}
+.logo-icon{font-size:20px;margin-bottom:4px}
+.logo-name{font-size:13px;font-weight:600;color:#111}
+.logo-church{font-size:11px;color:#888;margin-top:1px}
+.nav-item{display:flex;align-items:center;gap:9px;padding:9px 16px;cursor:pointer;font-size:13px;color:#666;transition:background .12s;border:none;background:none;width:100%;text-align:left}
+.nav-item:hover{background:#f4f5f7;color:#111}
+.nav-item.active{background:#EBF4FF;color:#185FA5;font-weight:600}
+.nav-dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
+.main{flex:1;margin-left:200px;display:flex;flex-direction:column}
+.topbar{background:#fff;border-bottom:1px solid #eee;padding:13px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+.topbar-title{font-size:15px;font-weight:600;color:#111}
+.topbar-right{display:flex;align-items:center;gap:8px}
+.conn-badge{font-size:11px;padding:3px 9px;border-radius:99px;font-weight:500}
+.conn-ok{background:#EAF3DE;color:#3B6D11}
+.conn-err{background:#FCEBEB;color:#A32D2D}
+.content{padding:22px 24px;flex:1}
+.section{display:none}
+.section.active{display:block}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.stat{background:#fff;border:1px solid #eee;border-radius:10px;padding:14px 16px}
+.stat-lbl{font-size:11px;color:#888;margin-bottom:3px}
+.stat-val{font-size:22px;font-weight:600;color:#111}
+.stat-sub{font-size:11px;color:#aaa;margin-top:1px}
+.card{background:#fff;border:1px solid #eee;border-radius:12px;padding:18px;margin-bottom:14px}
+.card-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.card-title{font-size:13px;font-weight:600;color:#111}
+.btn{padding:7px 14px;border-radius:8px;border:1px solid #ddd;background:#fff;color:#111;font-size:12px;cursor:pointer;transition:background .12s;font-weight:500}
+.btn:hover{background:#f4f5f7}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-primary{background:#185FA5;color:#fff;border-color:#185FA5}
+.btn-primary:hover{background:#0C447C}
+.btn-sm{padding:4px 10px;font-size:11px}
+.btn-danger{background:#A32D2D;color:#fff;border-color:#A32D2D}
+.btn-green{background:#27500A;color:#fff;border-color:#27500A}
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{text-align:left;padding:8px 10px;color:#888;font-weight:600;font-size:11px;border-bottom:1px solid #f0f0f0;text-transform:uppercase;letter-spacing:.04em}
+.tbl td{padding:10px 10px;border-bottom:1px solid #f8f8f8;color:#111;vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:#fafbfc}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;white-space:nowrap}
+.b-blue{background:#EBF4FF;color:#185FA5}
+.b-green{background:#EAF3DE;color:#3B6D11}
+.b-amber{background:#FAEEDA;color:#854F0B}
+.b-red{background:#FCEBEB;color:#A32D2D}
+.b-gray{background:#f4f5f7;color:#555}
+.b-purple{background:#EEEDFE;color:#534AB7}
+.b-teal{background:#E1F5EE;color:#085041}
+.av{width:30px;height:30px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0}
+.av-0{background:#B5D4F4;color:#0C447C}
+.av-1{background:#9FE1CB;color:#085041}
+.av-2{background:#CECBF6;color:#3C3489}
+.av-3{background:#F5C4B3;color:#712B13}
+.av-4{background:#C0DD97;color:#27500A}
+.av-5{background:#FAC775;color:#633806}
+.nc{display:flex;align-items:center;gap:8px}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:100;align-items:center;justify-content:center}
+.overlay.open{display:flex}
+.modal{background:#fff;border-radius:14px;border:1px solid #eee;padding:24px;width:480px;max-width:95vw;max-height:90vh;overflow-y:auto}
+.modal-title{font-size:15px;font-weight:600;margin-bottom:18px}
+.fl{margin-bottom:12px}
+.flbl{font-size:11px;color:#666;margin-bottom:5px;display:block;font-weight:500}
+.finput{width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;color:#111;background:#fff}
+.finput:focus{outline:none;border-color:#185FA5;box-shadow:0 0 0 3px rgba(24,95,165,.1)}
+.fr2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mact{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
+.tl-item{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid #f8f8f8}
+.tl-item:last-child{border-bottom:none}
+.tl-dot{width:7px;height:7px;border-radius:50%;margin-top:5px;flex-shrink:0}
+.dot-green{background:#3B6D11}
+.dot-blue{background:#185FA5}
+.dot-amber{background:#854F0B}
+.dot-red{background:#A32D2D}
+.tl-info{flex:1}
+.tl-title{font-size:12px;color:#111}
+.tl-meta{font-size:11px;color:#999;margin-top:1px}
+.schedule-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.svc-col{border-radius:10px;overflow:hidden;border:1px solid #eee}
+.svc-hdr{padding:9px 12px;background:#185FA5;color:#fff;font-size:11px;font-weight:600;text-align:center}
+.svc-body{padding:8px}
+.svc-slot{background:#f8faff;border:1px solid #dce8f8;border-radius:7px;padding:7px 10px;margin-bottom:6px;font-size:11px;position:relative}
+.svc-slot:last-child{margin-bottom:0}
+.svc-role{color:#666;font-size:10px;margin-bottom:2px}
+.svc-name{color:#111;font-weight:600}
+.svc-del{position:absolute;top:5px;right:6px;background:none;border:none;color:#ccc;cursor:pointer;font-size:12px;padding:0}
+.svc-del:hover{color:#A32D2D}
+.svc-empty{color:#bbb;font-style:italic;font-size:11px;text-align:center;padding:10px 0}
+.avail-row{background:#fff;border:1px solid #eee;border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.avail-info{flex:1}
+.avail-name{font-size:13px;font-weight:600}
+.avail-role{font-size:11px;color:#888;margin-top:1px}
+.avail-days{display:flex;gap:4px;flex-wrap:wrap;margin-top:7px}
+.dp{padding:3px 8px;border-radius:99px;font-size:10px;font-weight:600;border:1px solid #ddd;cursor:pointer;background:#f4f5f7;color:#888;transition:all .12s;user-select:none}
+.dp.on{background:#EBF4FF;color:#185FA5;border-color:#9FC5F0}
+.cfg-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f5f5f5}
+.cfg-lbl{font-size:13px;font-weight:500}
+.cfg-sub{font-size:11px;color:#888;margin-top:2px}
+.toggle{width:36px;height:20px;border-radius:10px;background:#ddd;position:relative;cursor:pointer;border:none;transition:background .18s;flex-shrink:0}
+.toggle.on{background:#185FA5}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:#fff;transition:left .18s}
+.toggle.on::after{left:19px}
+.tip-box{background:#EAF3DE;border-radius:8px;padding:10px 14px;font-size:12px;color:#3B6D11;margin-top:10px;line-height:1.5}
+.loading{text-align:center;padding:30px;color:#888;font-size:13px}
+.empty{text-align:center;padding:24px;color:#bbb;font-size:13px;font-style:italic}
+.toast{position:fixed;bottom:20px;right:20px;z-index:999;padding:10px 18px;border-radius:10px;font-size:13px;font-weight:500;box-shadow:0 4px 12px rgba(0,0,0,.15);transition:opacity .3s;pointer-events:none}
+.toast-ok{background:#3B6D11;color:#fff}
+.toast-err{background:#A32D2D;color:#fff}
+.s-hdr{font-size:11px;font-weight:600;color:#888;letter-spacing:.05em;text-transform:uppercase;margin:16px 0 8px}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="sidebar">
+    <div class="logo">
+      <div class="logo-icon">✝</div>
+      <div class="logo-name">Volunteer Hub</div>
+      <div class="logo-church" id="church-name-lbl">Grace Community</div>
+    </div>
+    <button class="nav-item active" onclick="nav('dashboard',this)"><span class="nav-dot"></span>Dashboard</button>
+    <button class="nav-item" onclick="nav('schedule',this)"><span class="nav-dot"></span>Sunday Schedule</button>
+    <button class="nav-item" onclick="nav('volunteers',this)"><span class="nav-dot"></span>Volunteers</button>
+    <button class="nav-item" onclick="nav('availability',this)"><span class="nav-dot"></span>Availability</button>
+    <button class="nav-item" onclick="nav('tasks',this)"><span class="nav-dot"></span>Tasks</button>
+    <button class="nav-item" onclick="nav('reminders',this)"><span class="nav-dot"></span>Reminders</button>
+    <button class="nav-item" onclick="nav('settings',this)"><span class="nav-dot"></span>Settings</button>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <span class="topbar-title" id="pg-title">Dashboard</span>
+      <div class="topbar-right">
+        <span class="conn-badge" id="conn-badge">Checking...</span>
+        <div id="tb-act"></div>
+      </div>
+    </div>
+    <div class="content">
+
+      <!-- DASHBOARD -->
+      <div class="section active" id="sec-dashboard">
+        <div class="stats-row">
+          <div class="stat"><div class="stat-lbl">Volunteers</div><div class="stat-val" id="s-vol">—</div><div class="stat-sub">registered</div></div>
+          <div class="stat"><div class="stat-lbl">Open tasks</div><div class="stat-val" id="s-tasks">—</div><div class="stat-sub">this month</div></div>
+          <div class="stat"><div class="stat-lbl">Reminders sent</div><div class="stat-val" id="s-rem">—</div><div class="stat-sub">total logged</div></div>
+          <div class="stat"><div class="stat-lbl">Coverage</div><div class="stat-val" id="s-cov">—</div><div class="stat-sub">tasks assigned</div></div>
+        </div>
+        <div class="card">
+          <div class="card-hdr"><span class="card-title">Upcoming tasks</span></div>
+          <table class="tbl"><thead><tr><th>Task</th><th>Volunteer</th><th>Date</th><th>Status</th></tr></thead>
+          <tbody id="dash-tasks"><tr><td colspan="4" class="loading">Loading...</td></tr></tbody></table>
+        </div>
+        <div class="card">
+          <div class="card-hdr"><span class="card-title">Recent reminder activity</span></div>
+          <div id="dash-log"><div class="loading">Loading...</div></div>
+        </div>
+      </div>
+
+      <!-- SUNDAY SCHEDULE -->
+      <div class="section" id="sec-schedule">
+        <div class="card">
+          <div class="card-hdr">
+            <span class="card-title">Sunday service schedule</span>
+            <div style="display:flex;gap:8px;align-items:center">
+              <select class="finput" id="svc-week" style="width:auto;font-size:12px" onchange="renderSchedule()"></select>
+              <button class="btn btn-primary btn-sm" onclick="openModal('slot')">+ Assign slot</button>
+            </div>
+          </div>
+          <div class="schedule-grid" id="schedule-grid"><div class="loading">Loading...</div></div>
+        </div>
+      </div>
+
+      <!-- VOLUNTEERS -->
+      <div class="section" id="sec-volunteers">
+        <div class="card">
+          <div class="card-hdr"><span class="card-title">All volunteers</span><span class="badge b-gray" id="vol-count"></span></div>
+          <table class="tbl"><thead><tr><th>Name</th><th>Ministry</th><th>Email</th><th>Phone</th><th>Tasks</th><th>Actions</th></tr></thead>
+          <tbody id="vol-table"><tr><td colspan="6" class="loading">Loading...</td></tr></tbody></table>
+        </div>
+      </div>
+
+      <!-- AVAILABILITY -->
+      <div class="section" id="sec-availability">
+        <div class="card">
+          <div class="card-hdr"><span class="card-title">Volunteer availability</span><span style="font-size:11px;color:#888">Click days to toggle — auto-saved</span></div>
+          <div id="avail-grid"><div class="loading">Loading...</div></div>
+        </div>
+      </div>
+
+      <!-- TASKS -->
+      <div class="section" id="sec-tasks">
+        <div class="card">
+          <div class="card-hdr"><span class="card-title">Task assignments</span><button class="btn btn-primary btn-sm" onclick="openModal('task')">+ Assign task</button></div>
+          <table class="tbl"><thead><tr><th>Task</th><th>Ministry</th><th>Volunteer</th><th>Date</th><th>Status</th><th></th></tr></thead>
+          <tbody id="task-table"><tr><td colspan="6" class="loading">Loading...</td></tr></tbody></table>
+        </div>
+      </div>
+
+      <!-- REMINDERS -->
+      <div class="section" id="sec-reminders">
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-hdr">
+            <span class="card-title">Auto-reminder schedule</span>
+            <button class="btn btn-green btn-sm" id="send-all-btn" onclick="sendAllReminders()">Send all reminders now</button>
+          </div>
+          <div style="font-size:12px;color:#888;margin-bottom:14px">Cron job runs daily at 8:00 AM and sends reminders to volunteers 3 days before their task and on the day of.</div>
+          <div id="rem-schedule"></div>
+        </div>
+        <div class="card">
+          <div class="card-hdr"><span class="card-title">Delivery log</span><span class="badge b-gray" id="log-count"></span></div>
+          <div id="rem-log"><div class="loading">Loading...</div></div>
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div class="section" id="sec-settings">
+        <div class="card">
+          <div style="background:#EBF4FF;border-radius:8px;padding:12px 16px;font-size:12px;color:#185FA5;margin-bottom:18px;line-height:1.6">
+            <strong>API credentials are stored in your <code>.env</code> file on the server — never in the browser.</strong><br>
+            Edit <code>server/.env</code> directly, then restart the server. The form below is for reference only.
+          </div>
+          <div class="s-hdr">Church info</div>
+          <div class="fr2">
+            <div class="fl"><label class="flbl">Church name</label><input class="finput" id="cfg-name" placeholder="Grace Community Church"></div>
+            <div class="fl"><label class="flbl">Admin email</label><input class="finput" id="cfg-email" placeholder="admin@gracechurch.org"></div>
+          </div>
+          <div class="s-hdr">Email — Resend <span style="color:#854F0B;font-weight:400">(3,000 free emails/month at resend.com)</span></div>
+          <div class="fr2">
+            <div class="fl"><label class="flbl">Resend API key</label><input class="finput" id="cfg-resend" placeholder="re_xxxxxxxx (set in .env)"></div>
+            <div class="fl"><label class="flbl">From address</label><input class="finput" id="cfg-from" placeholder="reminders@yourchurch.org"></div>
+          </div>
+          <div class="s-hdr">SMS — Twilio <span style="color:#854F0B;font-weight:400">(~$0.008/text — free trial at twilio.com)</span></div>
+          <div class="fr2">
+            <div class="fl"><label class="flbl">Account SID</label><input class="finput" id="cfg-sid" placeholder="ACxxxxxxxx (set in .env)"></div>
+            <div class="fl"><label class="flbl">Auth token</label><input class="finput" id="cfg-token" type="password" placeholder="•••••••• (set in .env)"></div>
+          </div>
+          <div class="fl"><label class="flbl">Twilio phone number</label><input class="finput" id="cfg-phone" placeholder="+19725550200" style="width:200px"></div>
+          <div class="s-hdr">Reminder rules</div>
+          <div class="cfg-row"><div><div class="cfg-lbl">Days before task to send advance reminder</div><div class="cfg-sub">Set REMINDER_DAYS_AHEAD in .env</div></div><input type="number" class="finput" value="3" min="1" max="14" style="width:60px;text-align:center"></div>
+          <div class="cfg-row"><div><div class="cfg-lbl">Day-of reminder (sent at 8 AM)</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
+          <div class="cfg-row"><div><div class="cfg-lbl">Email reminders enabled</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
+          <div class="cfg-row"><div><div class="cfg-lbl">SMS reminders enabled</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
+          <div class="tip-box">
+            <strong>Quick start:</strong><br>
+            1. Copy <code>server/.env.example</code> → <code>server/.env</code><br>
+            2. Fill in your Resend API key and Twilio credentials<br>
+            3. Run <code>npm start</code> in the server folder<br>
+            4. Open <code>http://localhost:3001</code> in your browser
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Modals -->
+<div class="overlay" id="modal-vol">
+  <div class="modal">
+    <div class="modal-title">Add volunteer</div>
+    <div class="fr2">
+      <div class="fl"><label class="flbl">First name</label><input class="finput" id="v-first" placeholder="Jane"></div>
+      <div class="fl"><label class="flbl">Last name</label><input class="finput" id="v-last" placeholder="Smith"></div>
+    </div>
+    <div class="fr2">
+      <div class="fl"><label class="flbl">Email</label><input class="finput" id="v-email" placeholder="jane@email.com"></div>
+      <div class="fl"><label class="flbl">Phone (for SMS)</label><input class="finput" id="v-phone" placeholder="+19725550199"></div>
+    </div>
+    <div class="fl"><label class="flbl">Ministry / Role</label>
+      <select class="finput" id="v-role">
+        <option>Worship Team</option><option>Ushers</option><option>Children's Ministry</option>
+        <option>Media & Tech</option><option>Welcome Team</option><option>Prayer Team</option><option>Kitchen/Hospitality</option>
+      </select>
+    </div>
+    <div class="mact"><button class="btn" onclick="closeModal('vol')">Cancel</button><button class="btn btn-primary" onclick="addVolunteer()">Add volunteer</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="modal-task">
+  <div class="modal">
+    <div class="modal-title">Assign task</div>
+    <div class="fl"><label class="flbl">Task name</label><input class="finput" id="t-name" placeholder="e.g. Lead Sunday Worship"></div>
+    <div class="fr2">
+      <div class="fl"><label class="flbl">Ministry</label>
+        <select class="finput" id="t-min">
+          <option>Worship Team</option><option>Ushers</option><option>Children's Ministry</option>
+          <option>Media & Tech</option><option>Welcome Team</option><option>Prayer Team</option><option>Kitchen/Hospitality</option>
+        </select>
+      </div>
+      <div class="fl"><label class="flbl">Due date</label><input class="finput" id="t-date" type="date"></div>
+    </div>
+    <div class="fl"><label class="flbl">Assign to</label><select class="finput" id="t-vol"></select></div>
+    <div class="fl"><label class="flbl">Notes (optional)</label><textarea class="finput" id="t-notes" rows="2" placeholder="Instructions for this volunteer..."></textarea></div>
+    <div class="mact"><button class="btn" onclick="closeModal('task')">Cancel</button><button class="btn btn-primary" onclick="addTask()">Assign task</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="modal-slot">
+  <div class="modal">
+    <div class="modal-title">Assign Sunday service slot</div>
+    <div class="fr2">
+      <div class="fl"><label class="flbl">Sunday</label><select class="finput" id="sl-date"></select></div>
+      <div class="fl"><label class="flbl">Service time</label>
+        <select class="finput" id="sl-time"><option>8:00 AM</option><option>9:30 AM</option><option>11:00 AM</option><option>6:00 PM</option></select>
+      </div>
+    </div>
+    <div class="fr2">
+      <div class="fl"><label class="flbl">Ministry / Role</label>
+        <select class="finput" id="sl-role">
+          <option>Worship Team</option><option>Ushers</option><option>Children's Ministry</option>
+          <option>Media & Tech</option><option>Welcome Team</option><option>Prayer Team</option>
+        </select>
+      </div>
+      <div class="fl"><label class="flbl">Volunteer</label><select class="finput" id="sl-vol"></select></div>
+    </div>
+    <div class="mact"><button class="btn" onclick="closeModal('slot')">Cancel</button><button class="btn btn-primary" onclick="addSlot()">Assign slot</button></div>
+  </div>
+</div>
+
+<script>
+const API = window.location.origin + '/api';
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const AV = ['av-0','av-1','av-2','av-3','av-4','av-5'];
+let volunteers = [], tasks = [], slots = [], log = [];
+
+function avCls(id) { return AV[Math.abs(parseInt(id)||0) % AV.length]; }
+function initials(v) { return ((v.first||'')[0]+(v.last||'')[0]||'?').toUpperCase(); }
+function fmtDate(d) { if(!d) return '—'; const [y,m,dd]=d.split('-'); return MONTHS[+m-1]+' '+dd+', '+y; }
+function fmtTime(iso) { if(!iso) return ''; const d=new Date(iso); return d.toLocaleDateString()+' '+d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); }
+function getVol(id) { return volunteers.find(v=>String(v.id)===String(id))||{first:'Unassigned',last:'',id:0,role:''}; }
+function statusBadge(s) { const m={confirmed:'b-green',assigned:'b-blue',pending:'b-amber',done:'b-gray'}; return `<span class="badge ${m[s]||'b-gray'}">${s}</span>`; }
+
+function toast(msg, ok=true) {
+  const t = document.createElement('div');
+  t.className = 'toast '+(ok?'toast-ok':'toast-err');
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(()=>{t.style.opacity='0';setTimeout(()=>t.remove(),400);},3000);
+}
+
+async function apiFetch(path, opts={}) {
+  const res = await fetch(API+path, { headers:{'Content-Type':'application/json'}, ...opts });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+async function checkHealth() {
+  try {
+    const h = await apiFetch('/health');
+    const parts = [];
+    if (h.email) parts.push('Email ✓');
+    if (h.sms) parts.push('SMS ✓');
+    const badge = document.getElementById('conn-badge');
+    badge.className = 'conn-badge conn-ok';
+    badge.textContent = parts.length ? parts.join(' · ') : 'Server connected';
+  } catch {
+    const badge = document.getElementById('conn-badge');
+    badge.className = 'conn-badge conn-err';
+    badge.textContent = 'Server offline';
+  }
+}
+
+async function loadAll() {
+  try {
+    [volunteers, tasks, slots, log] = await Promise.all([
+      apiFetch('/volunteers'), apiFetch('/tasks'), apiFetch('/slots'), apiFetch('/log')
+    ]);
+  } catch(e) {
+    console.error('Load error:', e);
+  }
+}
+
+function nav(page, el) {
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('sec-'+page).classList.add('active');
+  const titles={dashboard:'Dashboard',schedule:'Sunday schedule',volunteers:'Volunteers',availability:'Availability',tasks:'Tasks',reminders:'Reminders',settings:'Settings'};
+  document.getElementById('pg-title').textContent=titles[page];
+  const act=document.getElementById('tb-act');
+  if(page==='volunteers') act.innerHTML='<button class="btn btn-primary btn-sm" onclick="openModal(\'vol\')">+ Add volunteer</button>';
+  else if(page==='tasks') act.innerHTML='<button class="btn btn-primary btn-sm" onclick="openModal(\'task\')">+ Assign task</button>';
+  else if(page==='schedule') act.innerHTML='<button class="btn btn-primary btn-sm" onclick="openModal(\'slot\')">+ Assign slot</button>';
+  else act.innerHTML='';
+  const renders={dashboard:renderDashboard,schedule:renderSchedule,volunteers:renderVolunteers,availability:renderAvailability,tasks:renderTasks,reminders:renderReminders};
+  if(renders[page]) renders[page]();
+}
+
+function renderDashboard() {
+  const open = tasks.filter(t=>t.status!=='done');
+  const assigned = tasks.filter(t=>t.volId&&t.status!=='done');
+  document.getElementById('s-vol').textContent=volunteers.length;
+  document.getElementById('s-tasks').textContent=open.length;
+  document.getElementById('s-rem').textContent=log.length;
+  document.getElementById('s-cov').textContent=open.length?Math.round(assigned.length/open.length*100)+'%':'—';
+  document.getElementById('dash-tasks').innerHTML=tasks.slice(0,6).map(t=>{
+    const v=getVol(t.volId);
+    return`<tr><td>${t.name}</td><td><div class="nc"><div class="av ${avCls(v.id)}">${v.id?initials(v):''}</div>${v.first} ${v.last}</div></td><td>${fmtDate(t.date)}</td><td>${statusBadge(t.status)}</td></tr>`;
+  }).join('')||'<tr><td colspan="4" class="empty">No tasks yet</td></tr>';
+  document.getElementById('dash-log').innerHTML=log.slice(0,6).map(l=>`
+    <div class="tl-item">
+      <div class="tl-dot ${l.emailStatus==='sent'?'dot-green':l.emailStatus==='failed'?'dot-red':'dot-blue'}"></div>
+      <div class="tl-info">
+        <div class="tl-title">Email: <strong>${l.emailStatus||'—'}</strong> · SMS: <strong>${l.smsStatus||'—'}</strong> → ${l.volName} — ${l.task}</div>
+        <div class="tl-meta">${fmtTime(l.sentAt)}${l.auto?' · auto-scheduled':''}</div>
+      </div>
+    </div>`).join('')||'<div class="empty">No reminders sent yet</div>';
+}
+
+function getSundays() {
+  const out=[];
+  const d=new Date();
+  while(out.length<5){d.setDate(d.getDate()+1);if(d.getDay()===0)out.push(new Date(d));}
+  return out;
+}
+function dateStr(d){return d.toISOString().split('T')[0];}
+
+function renderSchedule() {
+  const sundays=getSundays();
+  const sel=document.getElementById('svc-week');
+  if(!sel.options.length) sundays.forEach(s=>{const o=document.createElement('option');o.value=dateStr(s);o.textContent=MONTHS[s.getMonth()]+' '+s.getDate();sel.appendChild(o);});
+  const chosen=sel.value||dateStr(sundays[0]);
+  const times=['8:00 AM','9:30 AM','11:00 AM','6:00 PM'];
+  const daySlots=slots.filter(s=>s.date===chosen);
+  document.getElementById('schedule-grid').innerHTML=times.map(time=>{
+    const ts=daySlots.filter(s=>s.time===time);
+    const body=ts.length?ts.map(s=>{
+      const v=getVol(s.volId);
+      return`<div class="svc-slot"><div class="svc-role">${s.role}</div><div class="svc-name">${v.first} ${v.last}</div><button class="svc-del" onclick="deleteSlot('${s.id}')">✕</button></div>`;
+    }).join(''):`<div class="svc-empty">No assignments</div>`;
+    return`<div class="svc-col"><div class="svc-hdr">${time}</div><div class="svc-body">${body}</div></div>`;
+  }).join('');
+}
+
+function renderVolunteers() {
+  document.getElementById('vol-count').textContent=volunteers.length+' total';
+  document.getElementById('vol-table').innerHTML=volunteers.map(v=>{
+    const tc=tasks.filter(t=>String(t.volId)===String(v.id)).length;
+    return`<tr>
+      <td><div class="nc"><div class="av ${avCls(v.id)}">${initials(v)}</div>${v.first} ${v.last}</div></td>
+      <td><span class="badge b-purple">${v.role}</span></td>
+      <td style="font-size:11px;color:#888">${v.email}</td>
+      <td style="font-size:11px;color:#888">${v.phone||'—'}</td>
+      <td><span class="badge b-blue">${tc}</span></td>
+      <td style="display:flex;gap:5px">
+        <button class="btn btn-sm btn-green" onclick="remindOne('${v.id}','${v.first} ${v.last}')">Remind</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteVol('${v.id}')">✕</button>
+      </td>
+    </tr>`;
+  }).join('')||'<tr><td colspan="6" class="empty">No volunteers yet</td></tr>';
+}
+
+function renderAvailability() {
+  document.getElementById('avail-grid').innerHTML=volunteers.map(v=>`
+    <div class="avail-row">
+      <div class="av ${avCls(v.id)}">${initials(v)}</div>
+      <div class="avail-info">
+        <div class="avail-name">${v.first} ${v.last}</div>
+        <div class="avail-role">${v.role}</div>
+        <div class="avail-days">${DAYS.map(d=>`<span class="dp ${(v.availability||[]).includes(d)?'on':''}" onclick="toggleDay('${v.id}','${d}',this)">${d}</span>`).join('')}</div>
+      </div>
+      <span class="badge b-teal">${(v.availability||[]).length} day${(v.availability||[]).length!==1?'s':''}/wk</span>
+    </div>`).join('')||'<div class="empty">No volunteers yet</div>';
+}
+
+async function toggleDay(id, day, el) {
+  const v=volunteers.find(x=>String(x.id)===String(id));
+  if(!v) return;
+  if(!v.availability) v.availability=[];
+  const i=v.availability.indexOf(day);
+  if(i>=0){v.availability.splice(i,1);el.classList.remove('on');}
+  else{v.availability.push(day);el.classList.add('on');}
+  el.closest('.avail-row').querySelector('.badge').textContent=v.availability.length+' day'+(v.availability.length!==1?'s':'')+'/wk';
+  try { await apiFetch('/volunteers/'+id,{method:'PUT',body:JSON.stringify({availability:v.availability})}); }
+  catch(e){ toast('Failed to save availability','err'); }
+}
+
+function renderTasks() {
+  document.getElementById('task-table').innerHTML=tasks.map(t=>{
+    const v=getVol(t.volId);
+    return`<tr>
+      <td>${t.name}</td>
+      <td><span class="badge b-gray">${t.ministry}</span></td>
+      <td><div class="nc"><div class="av ${avCls(v.id)}" style="width:24px;height:24px;font-size:9px">${v.id?initials(v):''}</div>${v.first} ${v.last}</div></td>
+      <td style="font-size:11px">${fmtDate(t.date)}</td>
+      <td>${statusBadge(t.status)}</td>
+      <td><button class="btn btn-sm btn-danger" onclick="deleteTask('${t.id}')">✕</button></td>
+    </tr>`;
+  }).join('')||'<tr><td colspan="6" class="empty">No tasks yet</td></tr>';
+}
+
+function renderReminders() {
+  const rems=[
+    {icon:'✉',cls:'b-blue',title:'3-day advance email',detail:'Sent 3 days before each assigned task'},
+    {icon:'✆',cls:'b-green',title:'3-day advance SMS',detail:'Sent 3 days before each assigned task'},
+    {icon:'✉',cls:'b-blue',title:'Day-of email',detail:'Sent at 8:00 AM on the day of the task'},
+    {icon:'✆',cls:'b-green',title:'Day-of SMS',detail:'Sent at 8:00 AM on the day of the task'},
+  ];
+  document.getElementById('rem-schedule').innerHTML=rems.map(r=>`
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f5f5f5">
+      <span class="badge ${r.cls}" style="font-size:15px;padding:6px 8px">${r.icon}</span>
+      <div style="flex:1"><div style="font-size:12px;font-weight:600">${r.title}</div><div style="font-size:11px;color:#888;margin-top:2px">${r.detail}</div></div>
+      <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+    </div>`).join('');
+  document.getElementById('log-count').textContent=log.length+' entries';
+  document.getElementById('rem-log').innerHTML=log.slice(0,20).map(l=>`
+    <div class="tl-item">
+      <div class="tl-dot ${l.emailStatus==='sent'?'dot-green':l.emailStatus==='failed'?'dot-red':'dot-blue'}"></div>
+      <div class="tl-info">
+        <div class="tl-title">
+          <strong>${l.volName}</strong> — ${l.task} (${fmtDate(l.date)})<br>
+          <span style="color:#888">Email: ${l.emailStatus||'—'} · SMS: ${l.smsStatus||'—'}${l.auto?' · auto':''}</span>
+        </div>
+        <div class="tl-meta">${fmtTime(l.sentAt)}</div>
+      </div>
+    </div>`).join('')||'<div class="empty">No reminders sent yet</div>';
+}
+
+function openModal(type) {
+  if(type==='task'||type==='slot') {
+    const sel=document.getElementById(type==='task'?'t-vol':'sl-vol');
+    sel.innerHTML=volunteers.map(v=>`<option value="${v.id}">${v.first} ${v.last} — ${v.role}</option>`).join('');
+    if(type==='task') document.getElementById('t-date').value=new Date().toISOString().split('T')[0];
+    if(type==='slot'){
+      const sdd=document.getElementById('sl-date');sdd.innerHTML='';
+      getSundays().forEach(s=>{const o=document.createElement('option');o.value=dateStr(s);o.textContent=MONTHS[s.getMonth()]+' '+s.getDate();sdd.appendChild(o);});
+    }
+  }
+  document.getElementById('modal-'+type).classList.add('open');
+}
+function closeModal(type){document.getElementById('modal-'+type).classList.remove('open');}
+
+async function addVolunteer() {
+  const f=document.getElementById('v-first').value.trim();
+  const e=document.getElementById('v-email').value.trim();
+  if(!f||!e){toast('Name and email required',false);return;}
+  try {
+    const v=await apiFetch('/volunteers',{method:'POST',body:JSON.stringify({first:f,last:document.getElementById('v-last').value.trim(),email:e,phone:document.getElementById('v-phone').value.trim(),role:document.getElementById('v-role').value,availability:['Sun']})});
+    volunteers.unshift(v);
+    closeModal('vol');
+    ['v-first','v-last','v-email','v-phone'].forEach(i=>document.getElementById(i).value='');
+    renderVolunteers();renderDashboard();
+    toast(`${v.first} ${v.last} added!`);
+  } catch(e){toast('Failed to add volunteer',false);}
+}
+
+async function addTask() {
+  const n=document.getElementById('t-name').value.trim();
+  const d=document.getElementById('t-date').value;
+  if(!n||!d){toast('Task name and date required',false);return;}
+  try {
+    const t=await apiFetch('/tasks',{method:'POST',body:JSON.stringify({name:n,ministry:document.getElementById('t-min').value,volId:document.getElementById('t-vol').value,date:d,notes:document.getElementById('t-notes').value,status:'assigned'})});
+    tasks.unshift(t);
+    closeModal('task');
+    document.getElementById('t-name').value='';document.getElementById('t-notes').value='';
+    renderTasks();renderDashboard();
+    toast('Task assigned!');
+  } catch(e){toast('Failed to assign task',false);}
+}
+
+async function addSlot() {
+  try {
+    const s=await apiFetch('/slots',{method:'POST',body:JSON.stringify({date:document.getElementById('sl-date').value,time:document.getElementById('sl-time').value,role:document.getElementById('sl-role').value,volId:document.getElementById('sl-vol').value})});
+    slots.unshift(s);closeModal('slot');renderSchedule();
+    toast('Slot assigned!');
+  } catch(e){toast('Failed to assign slot',false);}
+}
+
+async function deleteVol(id) {
+  if(!confirm('Remove this volunteer?')) return;
+  try { await apiFetch('/volunteers/'+id,{method:'DELETE'}); volunteers=volunteers.filter(v=>String(v.id)!==String(id)); renderVolunteers();renderDashboard();toast('Volunteer removed'); }
+  catch(e){toast('Delete failed',false);}
+}
+
+async function deleteTask(id) {
+  try { await apiFetch('/tasks/'+id,{method:'DELETE'}); tasks=tasks.filter(t=>String(t.id)!==String(id)); renderTasks();renderDashboard();toast('Task removed'); }
+  catch(e){toast('Delete failed',false);}
+}
+
+async function deleteSlot(id) {
+  try { await apiFetch('/slots/'+id,{method:'DELETE'}); slots=slots.filter(s=>String(s.id)!==String(id)); renderSchedule();toast('Slot removed'); }
+  catch(e){toast('Delete failed',false);}
+}
+
+async function remindOne(id, name) {
+  const btn=event.target;
+  btn.disabled=true;btn.textContent='Sending...';
+  try {
+    const r=await apiFetch('/remind/volunteer/'+id,{method:'POST'});
+    const results=r.results||[];
+    const emailOk=results.filter(x=>x.emailStatus==='sent').length;
+    const smsOk=results.filter(x=>x.smsStatus==='sent').length;
+    toast(`${name}: ${emailOk} email(s) + ${smsOk} SMS sent!`);
+    log=await apiFetch('/log');
+  } catch(e){ toast('Reminder failed: '+e.message,false); }
+  finally{btn.disabled=false;btn.textContent='Remind';}
+}
+
+async function sendAllReminders() {
+  const btn=document.getElementById('send-all-btn');
+  btn.disabled=true;btn.textContent='Sending...';
+  try {
+    const r=await apiFetch('/remind/all',{method:'POST'});
+    toast(`${r.count} reminder(s) sent to all volunteers!`);
+    log=await apiFetch('/log');
+    renderReminders();renderDashboard();
+  } catch(e){ toast('Failed: '+e.message,false); }
+  finally{btn.disabled=false;btn.textContent='Send all reminders now';}
+}
+
+document.querySelectorAll('.overlay').forEach(m=>m.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');}));
+
+(async()=>{
+  await checkHealth();
+  await loadAll();
+  renderDashboard();
+})();
+</script>
+</body>
+</html>
